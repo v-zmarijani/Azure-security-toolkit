@@ -1,0 +1,14 @@
+// Resources with the most open recommendations.
+securityresources
+| where type == "microsoft.security/assessments"
+| where tostring(properties.status.code) == "Unhealthy"
+| extend resourceId = tolower(tostring(properties.resourceDetails.Id)),
+         severity   = tostring(properties.metadata.severity)
+| summarize openIssues = count(),
+            highIssues = countif(severity == "High")
+            by resourceId
+| extend resourceName  = tostring(split(resourceId, "/")[-1]),
+         resourceGroup = tostring(split(resourceId, "/")[4])
+| order by highIssues desc, openIssues desc
+| project resourceName, resourceGroup, highIssues, openIssues
+| take 20

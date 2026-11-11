@@ -1,0 +1,63 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "functionUrl": {
+        "type": "SecureString",
+        "defaultValue": ""
+      },
+      "alertWebhookUrl": {
+        "type": "SecureString",
+        "defaultValue": ""
+      }
+    },
+    "triggers": {
+      "Every_morning": {
+        "type": "Recurrence",
+        "recurrence": {
+          "frequency": "Day",
+          "interval": 1,
+          "schedule": { "hours": [7], "minutes": [0] },
+          "timeZone": "Central European Standard Time"
+        }
+      }
+    },
+    "actions": {
+      "Run_storage_check": {
+        "type": "Http",
+        "inputs": {
+          "method": "GET",
+          "uri": "@parameters('functionUrl')"
+        },
+        "runAfter": {}
+      },
+      "If_problems_found": {
+        "type": "If",
+        "expression": {
+          "and": [
+            { "greater": [ "@body('Run_storage_check')?['findingsCount']", 0 ] },
+            { "not": { "equals": [ "@parameters('alertWebhookUrl')", "" ] } }
+          ]
+        },
+        "actions": {
+          "Send_alert": {
+            "type": "Http",
+            "inputs": {
+              "method": "POST",
+              "uri": "@parameters('alertWebhookUrl')",
+              "headers": { "Content-Type": "application/json" },
+              "body": {
+                "text": "@{concat('Storage security check: ', string(body('Run_storage_check')?['findingsCount']), ' storage account(s) need attention. Details: ', string(body('Run_storage_check')?['findings']))}"
+              }
+            }
+          }
+        },
+        "else": { "actions": {} },
+        "runAfter": { "Run_storage_check": ["Succeeded"] }
+      }
+    },
+    "outputs": {}
+  },
+  "parameters": {}
+}

@@ -1,0 +1,19 @@
+{
+  "tagName": {
+    "type": "String",
+    "metadata": {
+      "displayName": "Tag name",
+      "description": "The tag every resource must have, for example 'Owner'."
+    },
+    "defaultValue": "Owner"
+  },
+  "effect": {
+    "type": "String",
+    "metadata": {
+      "displayName": "Effect",
+      "description": "Audit = just report. Deny = block the deployment."
+    },
+    "allowedValues": ["Audit", "Deny", "Disabled"],
+    "defaultValue": "Audit"
+  }
+}

@@ -1,0 +1,9 @@
+// Public IPs and the resource they're attached to.
+// Unattached IPs still cost money.
+resources
+| where type == "microsoft.network/publicipaddresses"
+| extend ipAddress  = tostring(properties.ipAddress),
+         attachedTo = tostring(properties.ipConfiguration.id)
+| extend attachedTo = iff(isempty(attachedTo), "not attached", tostring(split(attachedTo, "/")[8]))
+| project name, ipAddress, attachedTo, resourceGroup, location, subscriptionId
+| order by attachedTo asc

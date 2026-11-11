@@ -1,0 +1,10 @@
+// Secure Score per subscription.
+// Works in Resource Graph Explorer or with: az graph query -q "<query>"
+securityresources
+| where type == "microsoft.security/securescores"
+| where name == "ascScore"
+| extend current = todouble(properties.score.current),
+         max     = todouble(properties.score.max),
+         percent = round(todouble(properties.score.percentage) * 100, 1)
+| project subscriptionId, current, max, percent
+| order by percent asc

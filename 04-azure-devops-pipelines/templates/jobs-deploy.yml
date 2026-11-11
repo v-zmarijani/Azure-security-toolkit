@@ -1,0 +1,44 @@
+# Deploys a Bicep file to a resource group.
+# Uses a "deployment job" tied to an Azure DevOps Environment, so you can add
+# approvals and checks on the Environment without touching this YAML.
+parameters:
+  - name: environment
+    type: string
+  - name: serviceConnection
+    type: string
+  - name: resourceGroup
+    type: string
+  - name: templateFile
+    type: string
+  - name: parametersFile
+    type: string
+    default: ''
+
+jobs:
+  - deployment: Deploy_${{ parameters.environment }}
+    displayName: 'Deploy to ${{ parameters.environment }}'
+    environment: '${{ parameters.environment }}'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+
+            - task: AzureCLI@2
+              displayName: 'Deploy Bicep'
+              inputs:
+                azureSubscription: '${{ parameters.serviceConnection }}'
+                scriptType: 'bash'
+                scriptLocation: 'inlineScript'
+                inlineScript: |
+                  set -euo pipefail
+                  PARAMS=""
+                  if [ -n "${{ parameters.parametersFile }}" ]; then
+                    PARAMS="--parameters ${{ parameters.parametersFile }}"
+                  fi
+                  az deployment group create \
+                    --name "pipeline-$(Build.BuildId)" \
+                    --resource-group "${{ parameters.resourceGroup }}" \
+                    --template-file "${{ parameters.templateFile }}" \
+                    $PARAMS \
+                    --query "properties.outputs" -o json

@@ -1,0 +1,10 @@
+{
+  "tagName": {
+    "type": "String",
+    "metadata": {
+      "displayName": "Tag name",
+      "description": "The tag to copy from the resource group when a resource is missing it."
+    },
+    "defaultValue": "Owner"
+  }
+}

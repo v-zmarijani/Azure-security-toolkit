@@ -1,0 +1,5 @@
+// Resources without an Owner tag.
+resources
+| where isempty(tostring(tags.Owner))
+| project name, type, resourceGroup, location, subscriptionId
+| order by type asc, name asc

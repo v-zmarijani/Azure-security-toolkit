@@ -1,0 +1,11 @@
+// Secure Score controls ordered by missing points.
+securityresources
+| where type == "microsoft.security/securescores/securescorecontrols"
+| extend control         = tostring(properties.displayName),
+         currentPoints   = todouble(properties.score.current),
+         maxPoints       = todouble(properties.score.max),
+         unhealthy       = toint(properties.unhealthyResourceCount)
+| extend missingPoints = round(maxPoints - currentPoints, 2)
+| where missingPoints > 0
+| order by missingPoints desc
+| project control, missingPoints, currentPoints, maxPoints, unhealthy

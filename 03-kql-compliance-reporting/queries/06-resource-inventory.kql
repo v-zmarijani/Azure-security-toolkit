@@ -1,0 +1,4 @@
+// Resource count per type.
+resources
+| summarize count = count() by type
+| order by ['count'] desc

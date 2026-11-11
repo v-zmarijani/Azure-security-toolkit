@@ -1,0 +1,15 @@
+// Storage accounts with at least one weak setting.
+// One true/false column per check.
+resources
+| where type == "microsoft.storage/storageaccounts"
+| extend httpsOnly      = tobool(properties.supportsHttpsTrafficOnly),
+         publicBlob     = tobool(properties.allowBlobPublicAccess),
+         minTls         = tostring(properties.minimumTlsVersion),
+         networkDefault = tostring(properties.networkAcls.defaultAction)
+| extend httpAllowed       = httpsOnly == false,
+         publicBlobAllowed = publicBlob == true,
+         oldTls            = minTls !in ("TLS1_2", "TLS1_3"),
+         openToAllNetworks = networkDefault == "Allow"
+| where httpAllowed or publicBlobAllowed or oldTls or openToAllNetworks
+| project name, resourceGroup, httpAllowed, publicBlobAllowed, oldTls, minTls, openToAllNetworks, subscriptionId
+| order by name asc

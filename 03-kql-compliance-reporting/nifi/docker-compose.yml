@@ -1,0 +1,19 @@
+# Runs Apache NiFi locally for building and testing the ETL flow.
+# Open https://localhost:8443/nifi and log in with the user/password below.
+# (Self-signed cert, so the browser will show a warning.)
+services:
+  nifi:
+    image: apache/nifi:1.28.1
+    container_name: nifi
+    ports:
+      - "8443:8443"
+    environment:
+      SINGLE_USER_CREDENTIALS_USERNAME: admin
+      SINGLE_USER_CREDENTIALS_PASSWORD: ChangeMe-LocalOnly-123   # min. 12 characters
+      NIFI_WEB_HTTPS_PORT: "8443"
+    volumes:
+      - ../output:/data/input:ro          # CSVs produced by report.py
+      - nifi-state:/opt/nifi/nifi-current/state
+
+volumes:
+  nifi-state:

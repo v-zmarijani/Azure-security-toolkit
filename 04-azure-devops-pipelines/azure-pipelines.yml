@@ -1,0 +1,45 @@
+# Example pipeline using the shared templates.
+trigger:
+  branches:
+    include: [main]
+  paths:
+    include: [04-azure-devops-pipelines/*]
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  serviceConnection: 'sc-azure-dev'          # Project settings > Service connections
+  resourceGroup: 'rg-portfolio-demo'
+  templateFile: '04-azure-devops-pipelines/infra/main.bicep'
+
+stages:
+  - stage: Validate
+    displayName: 'Validate'
+    jobs:
+      - job: Checks
+        displayName: 'Security scan + preview'
+        steps:
+          - template: templates/steps-security-scan.yml
+            parameters:
+              # Start in "report only" mode, review the findings, then set this to true
+              # so serious problems block the deployment (same as going from Audit to Deny in 01).
+              failOnFindings: false
+
+          - template: templates/steps-bicep-validate.yml
+            parameters:
+              serviceConnection: '$(serviceConnection)'
+              resourceGroup: '$(resourceGroup)'
+              templateFile: '$(templateFile)'
+
+  - stage: Deploy
+    displayName: 'Deploy'
+    dependsOn: Validate
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - template: templates/jobs-deploy.yml
+        parameters:
+          environment: 'dev'
+          serviceConnection: '$(serviceConnection)'
+          resourceGroup: '$(resourceGroup)'
+          templateFile: '$(templateFile)'

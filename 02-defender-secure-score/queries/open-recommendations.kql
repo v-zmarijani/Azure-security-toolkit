@@ -1,0 +1,11 @@
+// Unhealthy recommendations, high severity first, then by number of resources.
+securityresources
+| where type == "microsoft.security/assessments"
+| extend status         = tostring(properties.status.code),
+         recommendation = tostring(properties.displayName),
+         severity       = tostring(properties.metadata.severity)
+| where status == "Unhealthy"
+| extend severityRank = case(severity == "High", 1, severity == "Medium", 2, 3)
+| summarize resources = count() by recommendation, severity, severityRank
+| order by severityRank asc, resources desc
+| project recommendation, severity, resources

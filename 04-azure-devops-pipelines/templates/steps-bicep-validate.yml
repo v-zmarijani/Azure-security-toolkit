@@ -1,0 +1,34 @@
+# Checks that the Bicep file builds, then shows a "what-if" preview:
+# exactly what would be created, changed, or deleted, before anything happens.
+parameters:
+  - name: serviceConnection
+    type: string
+  - name: resourceGroup
+    type: string
+  - name: templateFile
+    type: string
+  - name: parametersFile
+    type: string
+    default: ''
+
+steps:
+  - task: AzureCLI@2
+    displayName: 'Bicep build + what-if'
+    inputs:
+      azureSubscription: '${{ parameters.serviceConnection }}'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        set -euo pipefail
+        echo "==> Building ${{ parameters.templateFile }}"
+        az bicep build --file "${{ parameters.templateFile }}" --stdout > /dev/null
+
+        echo "==> What would change in ${{ parameters.resourceGroup }}:"
+        PARAMS=""
+        if [ -n "${{ parameters.parametersFile }}" ]; then
+          PARAMS="--parameters ${{ parameters.parametersFile }}"
+        fi
+        az deployment group what-if \
+          --resource-group "${{ parameters.resourceGroup }}" \
+          --template-file "${{ parameters.templateFile }}" \
+          $PARAMS

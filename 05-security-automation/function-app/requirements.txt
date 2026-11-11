@@ -1,0 +1,3 @@
+azure-functions
+azure-identity>=1.15
+azure-mgmt-storage>=21.0

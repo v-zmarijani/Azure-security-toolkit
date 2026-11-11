@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Azure Functions local settings (may contain secrets)
+local.settings.json
+.python_packages/
+
+# Generated reports
+output/
+*.csv
+!sample-output/*.csv
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

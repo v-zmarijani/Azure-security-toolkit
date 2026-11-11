@@ -1,0 +1,18 @@
+// NSG rules allowing SSH (22) or RDP (3389) from the internet.
+// Only checks destinationPortRange, not the destinationPortRanges list.
+resources
+| where type == "microsoft.network/networksecuritygroups"
+| mv-expand rule = properties.securityRules
+| extend direction = tostring(rule.properties.direction),
+         access    = tostring(rule.properties.access),
+         source    = tostring(rule.properties.sourceAddressPrefix),
+         port      = tostring(rule.properties.destinationPortRange),
+         ruleName  = tostring(rule.name)
+| where direction == "Inbound" and access == "Allow"
+| where source in ("*", "Internet", "0.0.0.0/0", "Any")
+| where port in ("*", "22", "3389") or port matches regex @"^(\d+)-(\d+)$"
+| extend portFrom = toint(extract(@"^(\d+)", 1, port)),
+         portTo   = toint(extract(@"(\d+)$", 1, port))
+| where port == "*" or (portFrom <= 22 and portTo >= 22) or (portFrom <= 3389 and portTo >= 3389)
+| project nsg = name, ruleName, port, source, resourceGroup, subscriptionId
+| order by nsg asc

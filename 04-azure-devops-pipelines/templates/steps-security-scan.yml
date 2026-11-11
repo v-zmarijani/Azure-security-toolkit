@@ -1,0 +1,41 @@
+# Scans infrastructure code (Bicep, ARM, Terraform...) for security problems with Checkov.
+# Results show up in the "Tests" tab of the pipeline run.
+parameters:
+  - name: directory
+    type: string
+    default: '$(System.DefaultWorkingDirectory)/04-azure-devops-pipelines/infra'
+  - name: framework
+    type: string
+    default: 'bicep'
+  - name: failOnFindings      # true = stop the pipeline when Checkov finds problems
+    type: boolean
+    default: true
+
+steps:
+  - task: UsePythonVersion@0
+    displayName: 'Use Python 3.11'
+    inputs:
+      versionSpec: '3.11'
+
+  - script: pip install --quiet checkov
+    displayName: 'Install Checkov'
+
+  - script: |
+      mkdir -p "$(Build.ArtifactStagingDirectory)/checkov"
+      checkov \
+        --directory "${{ parameters.directory }}" \
+        --framework "${{ parameters.framework }}" \
+        --output cli \
+        --output junitxml \
+        --output-file-path console,"$(Build.ArtifactStagingDirectory)/checkov" \
+        ${{ iif(parameters.failOnFindings, '', '--soft-fail') }}
+    displayName: 'Security scan (Checkov)'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish scan results'
+    condition: always()   # publish even when the scan fails, so you can see why
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '$(Build.ArtifactStagingDirectory)/checkov/results_junitxml.xml'
+      testRunTitle: 'Checkov security scan'
+      failTaskOnFailedTests: false

@@ -1,0 +1,31 @@
+[
+  {
+    "policyDefinitionReferenceId": "requireOwnerTag",
+    "policyDefinitionId": "/subscriptions/__SUBSCRIPTION_ID__/providers/Microsoft.Authorization/policyDefinitions/require-owner-tag",
+    "parameters": {
+      "tagName": { "value": "Owner" },
+      "effect": { "value": "Audit" }
+    }
+  },
+  {
+    "policyDefinitionReferenceId": "inheritOwnerTag",
+    "policyDefinitionId": "/subscriptions/__SUBSCRIPTION_ID__/providers/Microsoft.Authorization/policyDefinitions/inherit-owner-tag-from-rg",
+    "parameters": {
+      "tagName": { "value": "Owner" }
+    }
+  },
+  {
+    "policyDefinitionReferenceId": "storageHttpsOnly",
+    "policyDefinitionId": "/subscriptions/__SUBSCRIPTION_ID__/providers/Microsoft.Authorization/policyDefinitions/storage-https-only",
+    "parameters": {
+      "effect": { "value": "Audit" }
+    }
+  },
+  {
+    "policyDefinitionReferenceId": "storageNoPublicBlob",
+    "policyDefinitionId": "/subscriptions/__SUBSCRIPTION_ID__/providers/Microsoft.Authorization/policyDefinitions/storage-no-public-blob",
+    "parameters": {
+      "effect": { "value": "Audit" }
+    }
+  }
+]

@@ -1,0 +1,12 @@
+// Compliant / non-compliant count per policy.
+policyresources
+| where type == "microsoft.policyinsights/policystates"
+| extend assignment = tostring(properties.policyAssignmentName),
+         policy     = tostring(properties.policyDefinitionName),
+         state      = tostring(properties.complianceState)
+| summarize compliant    = countif(state == "Compliant"),
+            nonCompliant = countif(state == "NonCompliant")
+            by assignment, policy
+| extend compliancePercent = iff(compliant + nonCompliant == 0, 100.0,
+                                 round(100.0 * compliant / (compliant + nonCompliant), 1))
+| order by nonCompliant desc
